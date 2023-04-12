@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
 @Api(tags = "UmsAdminController")
 @Tag(name = "UmsAdminController", description = "后台用户管理")
 @RequestMapping("/admin")
-public class UmsAdminController {
+public class UmsAdminController
+{
     @Value("${jwt.tokenHeader}")
     private String tokenHeader;
     @Value("${jwt.tokenHead}")
@@ -47,18 +48,24 @@ public class UmsAdminController {
     @ApiOperation(value = "用户注册")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult<UmsAdmin> register(@Validated @RequestBody UmsAdminParam umsAdminParam) {
-        UmsAdmin umsAdmin = adminService.register(umsAdminParam);
-        if (umsAdmin == null) {
-            return CommonResult.failed();
+    public CommonResult<UmsAdmin> register(@Validated @RequestBody UmsAdminParam umsAdminParam)
+    {
+        try {
+            UmsAdmin umsAdmin = adminService.register(umsAdminParam);
+            if (umsAdmin == null) {
+                return CommonResult.failed();
+            }
+            return CommonResult.success(umsAdmin);
+        } catch (Exception e) {
+            return CommonResult.failed(e.getMessage());
         }
-        return CommonResult.success(umsAdmin);
     }
 
     @ApiOperation(value = "登录以后返回token")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult login(@Validated @RequestBody UmsAdminLoginParam umsAdminLoginParam) {
+    public CommonResult login(@Validated @RequestBody UmsAdminLoginParam umsAdminLoginParam)
+    {
         String token = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
         if (token == null) {
             return CommonResult.validateFailed("用户名或密码错误");
@@ -72,7 +79,8 @@ public class UmsAdminController {
     @ApiOperation(value = "刷新token")
     @RequestMapping(value = "/refreshToken", method = RequestMethod.GET)
     @ResponseBody
-    public CommonResult refreshToken(HttpServletRequest request) {
+    public CommonResult refreshToken(HttpServletRequest request)
+    {
         String token = request.getHeader(tokenHeader);
         String refreshToken = adminService.refreshToken(token);
         if (refreshToken == null) {
@@ -87,8 +95,9 @@ public class UmsAdminController {
     @ApiOperation(value = "获取当前登录用户信息")
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     @ResponseBody
-    public CommonResult getAdminInfo(Principal principal) {
-        if(principal==null){
+    public CommonResult getAdminInfo(Principal principal)
+    {
+        if (principal == null) {
             return CommonResult.unauthorized(null);
         }
         String username = principal.getName();
@@ -98,9 +107,9 @@ public class UmsAdminController {
         data.put("menus", roleService.getMenuList(umsAdmin.getId()));
         data.put("icon", umsAdmin.getIcon());
         List<UmsRole> roleList = adminService.getRoleList(umsAdmin.getId());
-        if(CollUtil.isNotEmpty(roleList)){
+        if (CollUtil.isNotEmpty(roleList)) {
             List<String> roles = roleList.stream().map(UmsRole::getName).collect(Collectors.toList());
-            data.put("roles",roles);
+            data.put("roles", roles);
         }
         return CommonResult.success(data);
     }
@@ -108,16 +117,16 @@ public class UmsAdminController {
     @ApiOperation(value = "登出功能")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult logout() {
+    public CommonResult logout()
+    {
         return CommonResult.success(null);
     }
 
     @ApiOperation("根据用户名或姓名分页获取用户列表")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
-    public CommonResult<CommonPage<UmsAdmin>> list(@RequestParam(value = "keyword", required = false) String keyword,
-                                                   @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
-                                                   @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
+    public CommonResult<CommonPage<UmsAdmin>> list(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum)
+    {
         List<UmsAdmin> adminList = adminService.list(keyword, pageSize, pageNum);
         return CommonResult.success(CommonPage.restPage(adminList));
     }
@@ -125,7 +134,8 @@ public class UmsAdminController {
     @ApiOperation("获取指定用户信息")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public CommonResult<UmsAdmin> getItem(@PathVariable Long id) {
+    public CommonResult<UmsAdmin> getItem(@PathVariable Long id)
+    {
         UmsAdmin admin = adminService.getItem(id);
         return CommonResult.success(admin);
     }
@@ -133,7 +143,8 @@ public class UmsAdminController {
     @ApiOperation("修改指定用户信息")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult update(@PathVariable Long id, @RequestBody UmsAdmin admin) {
+    public CommonResult update(@PathVariable Long id, @RequestBody UmsAdmin admin)
+    {
         int count = adminService.update(id, admin);
         if (count > 0) {
             return CommonResult.success(count);
@@ -144,7 +155,8 @@ public class UmsAdminController {
     @ApiOperation("修改指定用户密码")
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult updatePassword(@Validated @RequestBody UpdateAdminPasswordParam updatePasswordParam) {
+    public CommonResult updatePassword(@Validated @RequestBody UpdateAdminPasswordParam updatePasswordParam)
+    {
         int status = adminService.updatePassword(updatePasswordParam);
         if (status > 0) {
             return CommonResult.success(status);
@@ -162,7 +174,8 @@ public class UmsAdminController {
     @ApiOperation("删除指定用户信息")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult delete(@PathVariable Long id) {
+    public CommonResult delete(@PathVariable Long id)
+    {
         int count = adminService.delete(id);
         if (count > 0) {
             return CommonResult.success(count);
@@ -173,10 +186,11 @@ public class UmsAdminController {
     @ApiOperation("修改帐号状态")
     @RequestMapping(value = "/updateStatus/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult updateStatus(@PathVariable Long id,@RequestParam(value = "status") Integer status) {
+    public CommonResult updateStatus(@PathVariable Long id, @RequestParam(value = "status") Integer status)
+    {
         UmsAdmin umsAdmin = new UmsAdmin();
         umsAdmin.setStatus(status);
-        int count = adminService.update(id,umsAdmin);
+        int count = adminService.update(id, umsAdmin);
         if (count > 0) {
             return CommonResult.success(count);
         }
@@ -186,8 +200,8 @@ public class UmsAdminController {
     @ApiOperation("给用户分配角色")
     @RequestMapping(value = "/role/update", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult updateRole(@RequestParam("adminId") Long adminId,
-                                   @RequestParam("roleIds") List<Long> roleIds) {
+    public CommonResult updateRole(@RequestParam("adminId") Long adminId, @RequestParam("roleIds") List<Long> roleIds)
+    {
         int count = adminService.updateRole(adminId, roleIds);
         if (count >= 0) {
             return CommonResult.success(count);
@@ -198,7 +212,8 @@ public class UmsAdminController {
     @ApiOperation("获取指定用户的角色")
     @RequestMapping(value = "/role/{adminId}", method = RequestMethod.GET)
     @ResponseBody
-    public CommonResult<List<UmsRole>> getRoleList(@PathVariable Long adminId) {
+    public CommonResult<List<UmsRole>> getRoleList(@PathVariable Long adminId)
+    {
         List<UmsRole> roleList = adminService.getRoleList(adminId);
         return CommonResult.success(roleList);
     }
